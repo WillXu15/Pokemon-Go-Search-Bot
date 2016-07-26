@@ -2,8 +2,9 @@ POKEMON GO SEARCH BOT
 
 Bot to search for pokemon nearby given a location.
 
-Uses pokemon go node api
+Uses pgoapi
 
+AS OF JUL 26 BOT HAS BEEN SWITCHED FROM NODE TO PYTHON
 
 TODO:<br/>
 [X] find pokemon nearby<br/>
