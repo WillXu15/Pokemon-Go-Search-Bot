@@ -46,7 +46,7 @@ def find_pokemon(api, lat, lng):
 	step_limit = 16
 	coords = utils.generate_spiral(lat, lng, step_size, step_limit)
 
-
+	pokemons = []
 	for coord in coords:
 		lat = coord["lat"]
 		lng = coord["lng"]
@@ -63,9 +63,27 @@ def find_pokemon(api, lat, lng):
 			 	for map_cell in response_dict['responses']['GET_MAP_OBJECTS']['map_cells']:
 			 		if 'wild_pokemons' in map_cell:
 						for pokemon in map_cell['wild_pokemons']:
-							poke = pokemon['pokemon_data']["pokemon_id"]
-							print pokedex[poke-1]["name"], "at", pokemon["latitude"], ",", pokemon["longitude"]
-							print "Hides at:", (datetime.datetime.now() + datetime.timedelta(milliseconds=pokemon["time_till_hidden_ms"])).time()
+							pokemons.append(pokemon)
+	
+	return {v['encounter_id']:v for v in pokemons}.values()
+
+def init():
+	config = load_config()
+
+	pos = get_pos_by_name(config["loc"])
+
+	api = PGoApi()
+	api.set_position(*pos)
+
+	if not api.login(config["auth"], config["username"], config["password"]):
+		return
+
+	return api, pos
+
+def find_pokemon_around_me():
+	api, pos = init()
+
+	return find_pokemon(api, pos[0], pos[1])
 
 def main():
 	
@@ -73,7 +91,7 @@ def main():
 
 	pos = get_pos_by_name(config["loc"])
 
-	api = PGoApi();
+	api = PGoApi()
 	api.set_position(*pos)
 
 	if not api.login(config["auth"], config["username"], config["password"]):
@@ -81,5 +99,5 @@ def main():
 
 	find_pokemon(api, pos[0], pos[1])
 
-
-main()
+if __name__ == '__main__':
+    main()
