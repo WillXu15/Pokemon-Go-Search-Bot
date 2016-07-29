@@ -1,5 +1,31 @@
 import random
 
+from geopy.geocoders import GoogleV3
+from s2sphere import Cell, CellId, LatLng
+
+def get_cell_ids(lat, lng, radius=10):
+    origin = CellId.from_lat_lng(LatLng.from_degrees(lat, lng)).parent(15)
+    walk = [origin.id()]
+    right = origin.next()
+    left = origin.prev()
+
+    for i in range(radius):
+        walk.append(right.id())
+        walk.append(left.id())
+        right = right.next()
+        left = left.prev()
+
+    return sorted(walk)
+
+def get_pos_by_name(loc_name):
+    geolocator = GoogleV3()
+    loc = geolocator.geocode(loc_name)
+
+    if not loc:
+        return None
+
+    return (loc.latitude, loc.longitude, loc.altitude)
+
 def generate_spiral(starting_lat, starting_lng, step_size, step_limit):
     coords = [{'lat': starting_lat, 'lng': starting_lng}]
     steps,x,y,d,m = 1, 0, 0, 1, 1

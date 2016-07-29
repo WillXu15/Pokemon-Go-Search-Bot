@@ -23,23 +23,18 @@ authorized_users = [os.environ.get('SLACK_AUTHORIZED_USER_ID')]
 def main():
 	if sc.rtm_connect():
 		pokemon_search = pokemon.PokemonSearch()
-		time_till_next_search = datetime.datetime.now() + datetime.timedelta(minutes=15)
+		time_till_next_search = datetime.datetime.now() + datetime.timedelta(minutes=7)
 		while True:
 			if not parse(pokemon_search, sc.rtm_read()):
 				if datetime.datetime.now() > time_till_next_search:
 					parse_pokemons(pokemon_search.find_pokemon_around_me())
-					time_till_next_search = datetime.datetime.now() + datetime.timedelta(minutes=15)
+					time_till_next_search = datetime.datetime.now() + datetime.timedelta(minutes=7)
 			time.sleep(1)
 
 	else:
 		print "Connection Failed, invalid token?"
 
 def parse_pokemons(pokemons):
-	sc.api_call("chat.postMessage", as_user="true", channel=channel, text="looking for pokemon")
-	if pokemons == None:
-		sc.api_call("chat.postMessage", as_user="true", channel=channel, text="unable to log in")
-		return
-
 	for pokemon in pokemons:
 		print pokemon
 		poke = pokedex[pokemon["pokemon_data"]["pokemon_id"] - 1]["name"]
@@ -65,6 +60,7 @@ def parse(pokemon_search, values):
 				search_str = re.compile("^[sS]earch$").findall(val["text"])
 				set_str = re.compile("^[sS]et").findall(val["text"])
 				if search_str:
+					sc.api_call("chat.postMessage", as_user="true", channel=channel, text="looking for pokemon")
 					parse_pokemons(pokemon_search.find_pokemon_around_me())
 				if set_str:
 					latlng = re.compile("-?\d+.\d+").findall(val["text"])
