@@ -55,7 +55,7 @@ def parse(pokemon_search, values):
 	if values and len(values) > 0:
 		for val in values:
 			if val and 'text' in val and 'ts' in val:
-				if 'user' in val and val['user'] == "":
+				if 'user' in val and val['user'] == slack_bot_id:
 					continue
 				if 'user' in val and val['user'] not in authorized_users:
 					sc.api_call("chat.postMessage", as_user="true", channel=channel, text="you are unauthorized to make that call")
