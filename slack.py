@@ -1,6 +1,8 @@
 import time
 import datetime
 import os
+import re
+
 from slackclient import SlackClient
 import sys
 
@@ -19,11 +21,12 @@ slack_start_time = datetime.datetime.now()
 
 def main():
 	if sc.rtm_connect():
+		pokemon_search = pokemon.PokemonSearch()
 		time_till_next_search = datetime.datetime.now() + datetime.timedelta(minutes=15)
 		while True:
-			if not parse(sc.rtm_read()):
+			if not parse(pokemon_search, sc.rtm_read()):
 				if datetime.datetime.now() > time_till_next_search:
-					parse_pokemons(pokemon.find_pokemon_around_me())
+					parse_pokemons(pokemon_search, pokemon.find_pokemon_around_me())
 					time_till_next_search = datetime.datetime.now() + datetime.timedelta(minutes=15)
 			time.sleep(1)
 
@@ -31,6 +34,7 @@ def main():
 		print "Connection Failed, invalid token?"
 
 def parse_pokemons(pokemons):
+	sc.api_call("chat.postMessage", as_user="true", channel=channel, text="looking for pokemon")
 	if pokemons == None:
 		sc.api_call("chat.postMessage", as_user="true", channel=channel, text="unable to log in")
 		return
@@ -38,11 +42,12 @@ def parse_pokemons(pokemons):
 	for pokemon in pokemons:
 		print pokemon
 		poke = pokedex[pokemon["pokemon_data"]["pokemon_id"] - 1]["name"]
-		spotted = "{} spotted at {}, {} will hide at {}".format(poke.encode('utf-8'), pokemon["latitude"], pokemon["longitude"], (datetime.datetime.now() + datetime.timedelta(milliseconds=pokemon["time_till_hidden_ms"])).time())
+		time_till_hidden = (datetime.datetime.now() + datetime.timedelta(milliseconds=pokemon["time_till_hidden_ms"])).time()
+		spotted = "{} spotted <https://www.google.com/maps/dir//{},{}|here> will disappear at {}".format(poke.encode('utf-8'), pokemon["latitude"], pokemon["longitude"], time_till_hidden.strftime("%I:%M:%S"))
 		sc.api_call("chat.postMessage", as_user="true", channel=channel, text=spotted)
 
 
-def parse(values):
+def parse(pokemon_search, values):
 	if len(values) > 0 and DEBUG:
 		print values
 
@@ -51,9 +56,18 @@ def parse(values):
 			if val and 'text' in val and 'ts' in val:
 				if datetime.datetime.fromtimestamp(float(val["ts"])) < slack_start_time:
 					continue
-				if 'search' in val['text']:
-					sc.api_call("chat.postMessage", as_user="true", channel=channel, text="looking for pokemon")
-					parse_pokemons(pokemon.find_pokemon_around_me())
+				search_str = re.compile("^[sS]earch$").findall(val["text"])
+				set_str = re.compile("^[sS]et").findall(val["text"])
+				if search_str:
+					parse_pokemons(pokemon_search.find_pokemon_around_me())
+				if set_str:
+					latlng = re.compile("-?\d+.\d+").findall(val["text"])
+					if len(latlng) == 2:
+						lat, lng = latlng
+						pokemon_search.set_location(lat, lng)
+						sc.api_call("chat.postMessage", as_user="true", channel=channel, text="location set")
+					else:
+						sc.api_call("chat.postMessage", as_user="true", channel=channel, text="wrong arguments")
 		return True
 
 	return False

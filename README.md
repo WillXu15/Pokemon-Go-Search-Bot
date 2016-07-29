@@ -10,4 +10,6 @@ TODO:<br/>
 [X] find pokemon nearby<br/>
 [X] walk implemented to find gps location of nearby pokemon<br/>
 [] check to see if nearby pokemon or catchable pokemon provides anything useful<br/>
-[] implement slackbot to constantly check area for pokemon
+[X] implement slackbot to constantly check area for pokemon
+[X] implement slackbot to change location
+[X] implement slackbot to search on command
