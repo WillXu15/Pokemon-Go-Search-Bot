@@ -12,17 +12,6 @@ from google.protobuf.internal import encoder
 from geopy.geocoders import GoogleV3
 from s2sphere import Cell, CellId, LatLng
 
-
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s [%(module)10s] [%(levelname)5s] %(message)s')
-# log level for http request class
-logging.getLogger("requests").setLevel(logging.WARNING)
-# log level for main pgoapi class
-logging.getLogger("pgoapi").setLevel(logging.INFO)
-# log level for internal pgoapi class
-logging.getLogger("rpc_api").setLevel(logging.INFO)
-
-
-
 def get_cell_ids(lat, lng, radius=10):
 	origin = CellId.from_lat_lng(LatLng.from_degrees(lat, lng)).parent(15)
 	walk = [origin.id()]
@@ -61,7 +50,8 @@ class PokemonSearch:
 
 	def set_location(self, lat, lng):
 		self.pos = (float(lat), float(lng), 0)
-
+		self.api.set_position(*self.pos)
+		
 	def find_pokemon_around_me(self):
 		print self.pos
 		try:
