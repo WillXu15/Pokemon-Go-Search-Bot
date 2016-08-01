@@ -52,7 +52,7 @@ class PokemonSearch:
 
 		pokemons = []
 		for coord in coords:
-			time.sleep(1)
+			time.sleep(5)
 			lat = coord["lat"]
 			lng = coord["lng"]
 
